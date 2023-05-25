@@ -9,7 +9,7 @@ function playAudio(fileName) {
     var audio = new Audio(fileName);
     // Play the audio
     audio.play();
-  }
+}
 
 const keys = {
     z: { pressed: false },
@@ -27,8 +27,8 @@ class Player {
         this.velocity = { x: 0, y: 0 }
         this.radius = radius
         this.color = "yellow"
-        this.vertical=false
-        this.turn=0 // 0 no turn 1: starboard -1 : port (wanna turn)
+        this.vertical = false
+        this.turn = 0 // 0 no turn 1: starboard -1 : port (wanna turn)
         // this.direction="right"
     }
     draw() {
@@ -51,174 +51,167 @@ class Player {
         // console.log(this.turn)
         //collision detection ?
 
-        if (grid[yc][xc]==1){
-            grid[yc][xc]=0
+        if (grid[yc][xc] == 1) {
+            grid[yc][xc] = 0
             // playAudio('pacman_chomp.wav')
         }
         //movement
-        if (this.vertical){
+        if (this.vertical) {
             console.log(laskey)
-            if (laskey=='z'){
-                this.velocity.y= -this.speed
+            if (laskey == 'z') {
+                this.velocity.y = -this.speed
             }
-            else if (laskey=='s'){
-                this.velocity.y= this.speed
+            else if (laskey == 's') {
+                this.velocity.y = this.speed
             }
-            else if (laskey=='d'){
-                this.turn=1
+            else if (laskey == 'd') {
+                this.turn = 1
             }
-            else if (laskey=='q'){
-                this.turn=-1
+            else if (laskey == 'q') {
+                this.turn = -1
             }
-            
+
             // this.position.x=xc
-            if (Math.abs(y-yc)<0.2){// check for turn
-                if (this.turn==1 && grid[yc][xc+1]>=0){// if wanna turn and can turn
-                    this.vertical=false //change orientation
-                    this.velocity.x=this.speed//stop current orientation speed
-                    this.velocity.y=0
-                    this.turn=0
-                    laskey='d'
+            if (Math.abs(y - yc) < 0.2) {// check for turn
+                if (this.turn == 1 && grid[yc][xc + 1] >= 0) {// if wanna turn and can turn
+                    this.vertical = false //change orientation
+                    this.velocity.x = this.speed//stop current orientation speed
+                    this.velocity.y = 0
+                    this.turn = 0
+                    laskey = 'd'
                 }
-                else if (this.turn==-1 && grid[yc][xc-1]>=0){
-                    this.vertical=false
-                    this.velocity.x=-this.speed
-                    this.velocity.y=0
-                    this.turn=0
-                    laskey='q'
+                else if (this.turn == -1 && grid[yc][xc - 1] >= 0) {
+                    this.vertical = false
+                    this.velocity.x = -this.speed
+                    this.velocity.y = 0
+                    this.turn = 0
+                    laskey = 'q'
                 }
             }
             // if going to collide don't move anymore
-            if (grid[~~(y+0.7+v.y)][xc] < 0 || grid[~~(y+v.y)][xc] <0){
+            if (grid[~~(y + 0.7 + v.y)][xc] < 0 || grid[~~(y + v.y)][xc] < 0) {
                 // this.velocity.x=0
-                this.velocity.y=0
-                this.position.y=~~this.position.y
-                laskey=''
+                this.velocity.y = 0
+                this.position.y = ~~this.position.y
+                laskey = ''
             }
-            this.position.y+=this.velocity.y    
+            this.position.y += this.velocity.y
         }
 
 
-        else{ //horizental
-            if (laskey=='q'){
-                this.velocity.x=-this.speed
+        else { //horizental
+            if (laskey == 'q') {
+                this.velocity.x = -this.speed
             }
-            else if (laskey=='d'){
-                this.velocity.x=this.speed
+            else if (laskey == 'd') {
+                this.velocity.x = this.speed
             }
-            else if (laskey=='z'){
-                this.turn=-1
+            else if (laskey == 'z') {
+                this.turn = -1
             }
-            else if (laskey=='s'){
-                this.turn=1
+            else if (laskey == 's') {
+                this.turn = 1
             }
-            
+
             // this.position.y=yc
             // if going to collide stop
 
-            if (Math.abs(x-xc)<0.2){
-                if (this.turn==1 && grid[yc+1][xc]>=0){
-                    this.vertical=true
-                    this.velocity.y=this.speed
-                    this.velocity.x=0
-                    this.turn=0
-                    laskey='s'
+            if (Math.abs(x - xc) < 0.2) {
+                if (this.turn == 1 && grid[yc + 1][xc] >= 0) {
+                    this.vertical = true
+                    this.velocity.y = this.speed
+                    this.velocity.x = 0
+                    this.turn = 0
+                    laskey = 's'
                 }
-                else if (this.turn==-1 && grid[yc-1][xc]>=0){
-                    this.vertical=true
-                    this.velocity.y=-this.speed
-                    this.velocity.x=0
-                    this.turn=0
-                    laskey='z'
+                else if (this.turn == -1 && grid[yc - 1][xc] >= 0) {
+                    this.vertical = true
+                    this.velocity.y = -this.speed
+                    this.velocity.x = 0
+                    this.turn = 0
+                    laskey = 'z'
                 }
             }
 
-            if (grid[yc][~~(x+0.5+v.x)] < 0 || grid[yc][~~(x+v.x)] <0){//wall collision 
-                this.velocity.x=0
-                this.velocity.y=0
-                this.position.x=~~this.position.x
-                laskey=''
+            if (grid[yc][~~(x + 0.5 + v.x)] < 0 || grid[yc][~~(x + v.x)] < 0) {//wall collision 
+                this.velocity.x = 0
+                this.velocity.y = 0
+                this.position.x = ~~this.position.x
+                laskey = ''
             }
-            this.position.x+=this.velocity.x
+            this.position.x += this.velocity.x
         }
-                    if (x < 0) {//tunnels
-                this.position.x += 27
-            }
-            if (x > 27) {//tunnels
-                this.position.x -= 27
-            }
-        // if (grid[yc][(~~(x + v.x))] < 0) { //left
-        //     can_turn_x = false
-        //     // this.velocity.x=0
-        //     // keys.q.pressed=false
-        //     this.color = "orange"
-        // }
-        // if (grid[yc][~~(x + r + v.x)] < 0) { //left
-        //     // this.velocity.x=0
-        //     can_turn_x = false
-        //     // keys.q.pressed=false
-        //     this.color = "orange"
-        // }
-        // if (grid[~~(y + v.y)][xc] < 0) {//up
-        //     this.color = "orange"
-        //     can_turn_y = false
-        //     // this.velocity.y= 0
-        // }
-        // if (grid[~~(y + r + v.y)][xc] < 0) {//up
-        //     this.color = "orange"
-        //     // this.velocity.y= 0
-        //     can_turn_y = false
-        // }
-        // if (can_turn_x) {
-        //     this.position.x += this.velocity.x
-        // }
-        // if (can_turn_y) { this.position.y += this.velocity.y }
-        // if ((~~this.position.x) != xc) {
-        //     this.velocity.y = 0
-        // }
-        // if ((~~this.position.y + 4) != yc) {
-        //     this.velocity.x = 0
-        // }
-        // if (grid[yc][xc] == -1) {//i'm stuck inside a wall ///maybe just reset my position
-        //     this.color = "red"
-        //     this.velocity = { x: 0, y: 0 }
-        //     //reset pos
-        // }
-        // else {
-        //     this.color = "yellow"
-        //     grid[yc][xc] = 0 //i'm not inside a wall
-        //     if (keys.q.pressed && laskey == 'q') { //left && grid[y][x-1]>=0
-        //         this.velocity.x = -this.speed
-        //         // this.velocity.y=0
-        //         keys.q.pressed = false
-        //     }
-        //     else if (keys.z.pressed && laskey == 'z') {//up && grid[y-1][x]>=0
-        //         this.velocity.y = -this.speed
-        //         // this.velocity.x=0
-        //         keys.z.pressed = false
-        //     }
-        //     else if (keys.d.pressed && laskey == 'd') {//right && grid[y][x+1]>=0
-        //         // grid[y][x-1]=0
-        //         this.velocity.x = this.speed
-        //         // this.velocity.y=0
-        //         keys.d.pressed = false
-        //     }
-        //     else if (keys.s.pressed && laskey == 's') {//down && grid[y+1][x]>=0
-        //         // grid[y][x-1]=0
-        //         this.velocity.y = this.speed
-        //         // this.velocity.x=0
-        //         keys.s.pressed = false
-        //     }
-        //     if (x < 0) {//tunnels
-        //         this.position.x += 27
-        //     }
-        //     if (x > 27) {//tunnels
-        //         this.position.x -= 27
-        //     }
-
-        // }
+        if (x < 0) {//tunnels
+            this.position.x += 27
+        }
+        if (x > 27) {//tunnels
+            this.position.x -= 27
+        }
     }
 }
+
+
+
+
+
+class Ghost {
+    constructor({ position, speed, radius, player }) {
+        this.position = position
+        this.speed = speed * tz / (10 * fps)
+        this.velocity = { x: 0, y: 0 }
+        this.radius = radius
+        this.color = "pink"
+        this.vertical = false
+        this.target = player
+        this.turn = 0 // 0 no turn 1: starboard -1 : port (wanna turn)
+        // this.direction="right"
+    }
+    draw() {
+        c.beginPath()
+        let pacman_pos = { x: w / 2 + tz * this.position.x + tz / 2, y: tz * this.position.y + tz * 4 + tz / 2 }
+        c.arc(pacman_pos.x, pacman_pos.y, this.radius, 0, Math.PI * 2)
+        c.fillStyle = this.color
+        c.fill()
+        c.closePath()
+    }
+    astar(map) {
+    }
+
+    update(map) {
+        var grid = map.routes
+        var x = this.position.x
+        var y = this.position.y
+
+        function compare(a, b) {
+            if (a.fcost < b.fcost) {
+                return -1;
+            }
+            if (a.fcost > b.fcost) {
+                return 1;
+            }
+            return 0;
+        }
+
+
+
+
+
+
+        openset = [{ x: x, y: y, fcost: Math.abs(this.target.x - x) + Math.abs(this.target.y - y) }]
+        closedset = []
+        while (true) {
+            openset.sort(compare);
+            var min = openset.shift()
+            closedset.push(min)
+            if (min.x==this.target.x && min.y==this.target.y)
+                return
+            if 
+
+        }
+
+    }
+}
+
 
 function init_map() {
     var map
@@ -244,9 +237,11 @@ var tz = map.tileSize
 var coords = { x: 13, y: 22 } //init positon 11 , 22
 // //offset: x=x+1 y=y+4
 const player = new Player({
-    position: coords, speed: 3, radius: map.tileSize / 2
+    position: { x: 0, y: 0 }, speed: 4, radius: map.tileSize / 2
 })
-
+const pinky = new Ghost({
+    position: coords, speed: 3, radius: map.tileSize / 2, player
+})
 function animate() {
     setTimeout(() => {
         requestAnimationFrame(animate);
@@ -258,6 +253,7 @@ function animate() {
     // draw the map and update the player
     draw_map(map, c)
     player.update(map)
+    pinku.update(map)
 }
 
 animate()
