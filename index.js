@@ -3,6 +3,7 @@ const c=canvas.getContext('2d')
 canvas.width=innerWidth
 canvas.height=innerHeight
 var show_grid=false
+const fps=60
 
 const keys={
     z:{pressed: false},
@@ -12,11 +13,13 @@ const keys={
 }
 //ghost house coordinates: x: 11 - 16 y: 14 - 16
 class Player{
-    constructor({position,velocity,radius}){
+    constructor({position,speed,radius}){
         this.position=position
-        this.velocity=velocity
+        this.speed=speed*tz/(10*fps)
+        this.velocity={x:0,y:0}
         this.radius=radius
         this.color="yellow"
+        console.log(this.speed)
     }
     draw(){
         c.beginPath()
@@ -31,34 +34,43 @@ class Player{
         this.draw()
         var x=this.position.x
         var y=this.position.y+4
+
+        this.position.x+=this.velocity.x
+        this.position.y+=this.velocity.y
+
         if (grid[y][x]==-1){//i'm stuck inside a wall ///maybe just reset my position
             this.color="red"
+            setTimeout(null, 3000);
+            this.position={x:13,y:22}
+            this.velocity={x:0,y:0}
+            this.color="yellow"
+            //reset pos
         }
         else{   
-            grid[y][x]=0
-            if (keys.q.pressed && grid[y][x-1]>=0){
-                this.position.x-=1
-                keys.q.pressed=false
+            grid[y][x]=0 //i'm not inside a wall
+            if (keys.q.pressed ){ //left && grid[y][x-1]>=0
+                this.velocity.x= -this.speed
+                // keys.q.pressed=false
             }
-            else if (keys.z.pressed && grid[y-1][x]>=0){
-                this.position.y-=1
+            if (keys.z.pressed && grid[y-1][x]>=0){//up
+                this.velocity.y= -this.speed
                 keys.z.pressed=false
             }
-            else if (keys.d.pressed && grid[y][x+1]>=0){
+            if (keys.d.pressed && grid[y][x+1]>=0){//right
                 // grid[y][x-1]=0
-                this.position.x+=1
+                this.velocity.x= this.speed
                 keys.d.pressed=false
             }
-            else if (keys.s.pressed && grid[y+1][x]>=0){
+            if (keys.s.pressed && grid[y+1][x]>=0){//down
                 // grid[y][x-1]=0
-                this.position.y+=1
+                this.velocity.y= this.speed
                 keys.s.pressed=false
             }
-            else if (keys.q.pressed && x==0){
+            if (keys.q.pressed && x==0){//tunnels
                 this.position.x+=27
                 keys.z.pressed=false
             }
-            else if (keys.d.pressed && x==27){
+            if (keys.d.pressed && x==27){//tunnels
                 this.position.x-=27
                 keys.z.pressed=false
             }
@@ -91,14 +103,11 @@ var map = init_map();
 var tz=map.tileSize
 var coords={x:13,y:22} //init positon 11 , 22
 // //offset: x=x+1 y=y+4
-// console.log(map.routes[coords.x+1][coords.y+4])
-
 const player=new Player({
-    position:coords, velocity:{x:0,y:0},radius: map.tileSize/2
+    position:coords,speed:1,radius: map.tileSize/2
 })
 
 function animate(){
-    let fps=10
     setTimeout(() => {
         requestAnimationFrame(animate);
       }, 1000 / fps);
