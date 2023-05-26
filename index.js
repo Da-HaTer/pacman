@@ -3,7 +3,7 @@ const c = canvas.getContext('2d')
 canvas.width = innerWidth
 canvas.height = innerHeight
 var show_grid = false
-const fps = 30
+const fps = 60
 
 function playAudio(fileName) {
     var audio = new Audio(fileName);
@@ -16,9 +16,32 @@ const keys = {
     q: { pressed: false },
     d: { pressed: false },
     s: { pressed: false },
+    p: { pressed: false}
 }
 let laskey = ''
 //ghost house coordinates: x: 11 - 16 y: 14 - 16
+
+
+class PriorityQueue {
+  constructor() {
+    this.elements = [];
+  }
+
+  enqueue(element, priority) {
+    this.elements.push({ element, priority });
+    this.elements.sort((a, b) => a.priority - b.priority);
+  }
+
+  dequeue() {
+    return this.elements.shift().element;
+  }
+
+  isEmpty() {
+    return this.elements.length === 0;
+  }
+}
+
+
 
 class Player {
     constructor({ position, speed, radius }) {
@@ -49,15 +72,13 @@ class Player {
         let r = 0.5
         let v = this.velocity
         // console.log(this.turn)
-        //collision detection ?
-
+        //collision detection
         if (grid[yc][xc] == 1) {
             grid[yc][xc] = 0
             // playAudio('pacman_chomp.wav')
         }
         //movement
         if (this.vertical) {
-            console.log(laskey)
             if (laskey == 'z') {
                 this.velocity.y = -this.speed
             }
@@ -165,7 +186,18 @@ class Ghost {
     this.path = [];
     this.currentPathIndex = 0;
   }
+  draw_rect(x,y){
+    // Define the size and position of each square
+    const squareSize = tz; // Assuming tz is the size of each square
+    const squareX = w / 2 + tz * x + tz / 2; // Replace `x` with the actual x-coordinate of the square
+    const squareY = tz * y + tz * 4 + tz / 2; // Replace `y` with the actual y-coordinate of the square
 
+    // Set the color for the rectangle
+    c.fillStyle = "blue"; // Choose your desired color
+
+    // Draw the rectangle on the square
+    c.fillRect(squareX - squareSize / 2, squareY - squareSize / 2, squareSize, squareSize);
+  }
   draw() {
     c.beginPath();
     let { x, y } = this.position;
@@ -184,43 +216,44 @@ class Ghost {
   
     // Helper function to check if a node is in the open list
     function isInOpenList(node, openList) {
-      return openList.some((openNode) => openNode.x === node.x && openNode.y === node.y);
+      return openList.hasOwnProperty(`${node.x},${node.y}`);
     }
   
     // Helper function to check if a node is in the closed list
     function isInClosedList(node, closedList) {
-      return closedList.some((closedNode) => closedNode.x === node.x && closedNode.y === node.y);
+      return closedList.hasOwnProperty(`${node.x},${node.y}`);
     }
   
     // Create a priority queue to store nodes
     const openList = new PriorityQueue();
-  
+    const closedList = {};
     // Add the start node to the open list
     openList.enqueue(start, 0);
   
-    // Create a map to store the path cost from the start node to each node
-    const gScore = new Map();
-    gScore.set(start, 0);
+    // Create an object to store the path cost from the start node to each node
+    const gScore = {};
+    gScore[`${start.x},${start.y}`] = 0;
   
-    // Create a map to store the estimated total cost for each node
-    const fScore = new Map();
-    fScore.set(start, calculateHeuristic(start, target));
+    // Create an object to store the estimated total cost for each node
+    const fScore = {};
+    fScore[`${start.x},${start.y}`] = calculateHeuristic(start, target);
   
-    // Create a map to store the previous node in the optimal path
-    const cameFrom = new Map();
+    // Create an object to store the previous node in the optimal path
+    const cameFrom = {};
   
     while (!openList.isEmpty()) {
       // Get the node with the lowest fScore from the open list
       const current = openList.dequeue();
-  
+
       // Check if the current node is the target node
       if (current.x === target.x && current.y === target.y) {
         // Reconstruct the path from the start node to the target node
         const path = [];
         let currentNode = current;
-        while (cameFrom.has(currentNode)) {
-          path.unshift(currentNode);
-          currentNode = cameFrom.get(currentNode);
+        while (cameFrom.hasOwnProperty(`${currentNode.x},${currentNode.y}`)) {
+          path.unshift(currentNode); 
+          if (keys.p.pressed) this.draw_rect(currentNode.x,currentNode.y-4)
+          currentNode = cameFrom[`${currentNode.x},${currentNode.y}`];
         }
         return path;
       }
@@ -246,77 +279,74 @@ class Ghost {
         }
   
         // Calculate the tentative gScore for the neighbor
-        const tentativeGScore = gScore.get(current) + 1;
+        const tentativeGScore = gScore[`${current.x},${current.y}`] + 1;
   
         // Check if the neighbor is already in the closed list and has a lower gScore
-        if (isInClosedList(neighbor, closedList) && tentativeGScore >= gScore.get(neighbor)) {
+        if (
+          isInClosedList(neighbor, closedList) &&
+          tentativeGScore >= gScore[`${neighbor.x},${neighbor.y}`]
+        ) {
           continue;
         }
   
         // Check if the neighbor is not in the open list or has a lower gScore
-        if (!isInOpenList(neighbor, openList) || tentativeGScore < gScore.get(neighbor)) {
+        if (
+          !isInOpenList(neighbor, openList) ||
+          tentativeGScore < gScore[`${neighbor.x},${neighbor.y}`]
+        ) {
           // Update the gScore and fScore for the neighbor
-          gScore.set(neighbor, tentativeGScore);
-          fScore.set(neighbor, tentativeGScore + calculateHeuristic(neighbor, target));
+          gScore[`${neighbor.x},${neighbor.y}`] = tentativeGScore;
+          fScore[`${neighbor.x},${neighbor.y}`] =
+            tentativeGScore + calculateHeuristic(neighbor, target);
   
           // Set the previous node for the neighbor
-          cameFrom.set(neighbor, current);
+          cameFrom[`${neighbor.x},${neighbor.y}`] = current;
   
           // Add the neighbor to the open list
-          openList.enqueue(neighbor, fScore.get(neighbor));
+          openList.enqueue(neighbor, fScore[`${neighbor.x},${neighbor.y}`]);
         }
       }
   
       // Add the current node to the closed list
-      closedList.push(current);
+      closedList[`${current.x},${current.y}`] = true;
     }
   
     // No path found
     return [];
   }
 
-
-
-  update(map, pacmanPosition) {
+  update(map) {
     var grid = map.routes;
     var x = this.position.x;
     var y = this.position.y + 4; // no need for 4 ?
-
-    if (this.path.length === 0) {
-      this.path = this.findPath(grid, { x, y }, pacmanPosition);
+    let pacman = {x:~~(this.target.position.x),y:~~(this.target.position.y+4)}
+    if (this.path.length === 0 || true) {
+      this.path = this.findPath(grid, { x, y }, pacman);
       this.currentPathIndex = 0;
     }
+    
+    //todo: ghost movement
+    // if (this.path.length > 0) {
+    //   var target = this.path[this.currentPathIndex];
+    //   var dx = target.x - x;
+    //   var dy = target.y - y;
+    //   var angle = Math.atan2(dy, dx);
+    //   var velocityX = Math.cos(angle) * this.speed;
+    //   var velocityY = Math.sin(angle) * this.speed;
 
-    if (this.path.length > 0) {
-      var target = this.path[this.currentPathIndex];
-      var dx = target.x - x;
-      var dy = target.y - y;
-      var angle = Math.atan2(dy, dx);
-      var velocityX = Math.cos(angle) * this.speed;
-      var velocityY = Math.sin(angle) * this.speed;
+    //   this.position.x += velocityX;
+    //   this.position.y += velocityY;
 
-      this.position.x += velocityX;
-      this.position.y += velocityY;
-
-      if (Math.abs(this.position.x - target.x) < 0.1 && Math.abs(this.position.y - target.y) < 0.1) {
-        this.currentPathIndex++;
-        if (this.currentPathIndex >= this.path.length) {
-          this.path = [];
-          this.currentPathIndex = 0;
-        }
-      }
-    }
+    //   if (Math.abs(this.position.x - target.x) < 0.1 && Math.abs(this.position.y - target.y) < 0.1) {
+    //     this.currentPathIndex++;
+    //     if (this.currentPathIndex >= this.path.length) {
+    //       this.path = [];
+    //       this.currentPathIndex = 0;
+    //     }
+    //   }
+    // }
 
     this.draw();
-  }
-
-  findPath(grid, start, target) {
-    // A* algorithm implementation goes here to find the path
-    // from the start position to the target position on the grid.
-    // The resulting path is an array of grid positions.
-    // You can optionally visualize the path by coloring the squares.
-
-    return []; // Return the path array
   }
 }
 
@@ -351,6 +381,9 @@ const pinky = new Ghost({
     position: {x:1,y:0}, speed: 4, radius: map.tileSize / 2, player
 })
 function animate() {
+    // if (keys.p.pressed){
+    //   return
+    // }
     setTimeout(() => {
         requestAnimationFrame(animate);
     }, 1000 / fps);
@@ -401,10 +434,7 @@ window.addEventListener('keydown', ({ key }) => {
             show_grid = !show_grid
             break
         case "p":
-            let x = player.position.x
-            let y = player.position.y + 4
-            //actual map.route positions
-            console.log(x, y, map.routes[y][x])
+            keys.p.pressed=!keys.p.pressed
             break
     }
 }
