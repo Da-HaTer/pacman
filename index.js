@@ -4,6 +4,7 @@ canvas.width = innerWidth
 canvas.height = innerHeight
 var show_grid = false
 const fps = 60
+var gameover=false
 
 function playAudio(fileName) {
     var audio = new Audio(fileName);
@@ -178,7 +179,7 @@ class Player {
 class Ghost {
   constructor({ position, speed ,radius,player}) {
     this.position = position;
-    this.speed = speed;
+    this.speed = speed * tz / (10 * fps);
     this.velocity={x:0,y:0}
     this.target=player
     this.radius=radius
@@ -186,14 +187,14 @@ class Ghost {
     this.path = [];
     this.currentPathIndex = 0;
   }
-  draw_rect(x,y){
+  draw_rect(x,y,color="blue"){
     // Define the size and position of each square
     const squareSize = tz; // Assuming tz is the size of each square
     const squareX = w / 2 + tz * x + tz / 2; // Replace `x` with the actual x-coordinate of the square
     const squareY = tz * y + tz * 4 + tz / 2; // Replace `y` with the actual y-coordinate of the square
 
     // Set the color for the rectangle
-    c.fillStyle = "blue"; // Choose your desired color
+    c.fillStyle = color; // Choose your desired color
 
     // Draw the rectangle on the square
     c.fillRect(squareX - squareSize / 2, squareY - squareSize / 2, squareSize, squareSize);
@@ -319,12 +320,25 @@ class Ghost {
     var grid = map.routes;
     var x = this.position.x;
     var y = this.position.y + 4; // no need for 4 ?
+    let xc= ~~x
+    let yc= ~~y
     let pacman = {x:~~(this.target.position.x),y:~~(this.target.position.y+4)}
-    if (this.path.length === 0 || true) {
-      this.path = this.findPath(grid, { x, y }, pacman);
-      this.currentPathIndex = 0;
-    }
     
+    let path = this.findPath(grid, {x:xc,y:yc}, pacman);
+    if (keys.p.pressed && path.length>0) this.draw_rect(path[0].x,(path[0].y)-4,"red")
+    
+    let next=path[0]
+    
+    if (!next){
+      gameover=true
+      return gameover
+    }
+    if (next.y>y && ~~next.y!=~~y) this.position.y+=this.speed
+    if (next.y<y && Math.abs(next.y - y)>0.1 ) this.position.y-=this.speed
+    if (next.x>x && ~~next.x!=~~x) this.position.x+=this.speed
+    if (next.x<x && Math.abs(next.x - x)>0.1) this.position.x-=this.speed
+    // if (keys.p.pressed) this.draw_rect(currentNode.x,currentNode.y-4)
+    //gotos adjacent square:
     //todo: ghost movement
     // if (this.path.length > 0) {
     //   var target = this.path[this.currentPathIndex];
@@ -378,12 +392,12 @@ const player = new Player({
     position: coords, speed: 3, radius: map.tileSize / 2
 })
 const pinky = new Ghost({
-    position: {x:1,y:0}, speed: 4, radius: map.tileSize / 2, player
+    position: {x:1,y:0}, speed: 2, radius: map.tileSize / 2, player
 })
 function animate() {
-    // if (keys.p.pressed){
-    //   return
-    // }
+    if (gameover){
+      return gameover
+    }
     setTimeout(() => {
         requestAnimationFrame(animate);
     }, 1000 / fps);
