@@ -17,7 +17,8 @@ const keys = {
     q: { pressed: false },
     d: { pressed: false },
     s: { pressed: false },
-    p: { pressed: false}
+    p: { pressed: false },
+    esc: { pressed: false }
 }
 let laskey = ''
 //ghost house coordinates: x: 11 - 16 y: 14 - 16
@@ -76,6 +77,7 @@ class Player {
         //collision detection
         if (grid[yc][xc] == 1) {
             grid[yc][xc] = 0
+            ///lower pellets number todo
             // playAudio('pacman_chomp.wav')
         }
         //movement
@@ -269,9 +271,9 @@ class Ghost {
   
       for (const neighbor of neighbors) {
         // Skip if the neighbor is not a valid grid position or is a wall (-1)
-        if (
-          neighbor.x < 0 ||
-          neighbor.x >= grid[0].length ||
+        if (neighbor.x < 0) neighbor.x=27
+        else if (neighbor.x > 27) neighbor.x=0
+        if(
           neighbor.y < 0 ||
           neighbor.y >= grid.length ||
           grid[neighbor.y][neighbor.x] === -1
@@ -317,9 +319,12 @@ class Ghost {
   }
 
   update(map) {
+    if (this.position.x<1) this.position.x+=25
+    else if (this.position.x>26) this.position.x-=25 
     var grid = map.routes;
     var x = this.position.x;
     var y = this.position.y + 4; // no need for 4 ?
+    
     let xc= ~~x
     let yc= ~~y
     let pacman = {x:~~(this.target.position.x),y:~~(this.target.position.y+4)}
@@ -333,6 +338,7 @@ class Ghost {
       gameover=true
       return gameover
     }
+    
     if (next.y>y && ~~next.y!=~~y) this.position.y+=this.speed
     if (next.y<y && Math.abs(next.y - y)>0.1 ) this.position.y-=this.speed
     if (next.x>x && ~~next.x!=~~x) this.position.x+=this.speed
@@ -395,16 +401,22 @@ const pinky = new Ghost({
     position: {x:1,y:0}, speed: 2, radius: map.tileSize / 2, player
 })
 function animate() {
-    if (gameover){
-      return gameover
+    if (gameover ){
+      return false 
     }
+    if (keys.esc.pressed) {
+      // Request animation frame to keep checking if animation should resume
+      requestAnimationFrame(animate);
+      return; // Exit the function without executing the animation logic
+    }
+
     setTimeout(() => {
         requestAnimationFrame(animate);
     }, 1000 / fps);
     // requestAnimationFrame(animate);
     // clear the canvas at each frame
     c.clearRect(0, 0, canvas.width, canvas.height)
-
+    
     // draw the map and update the player
     draw_map(map, c)
     player.update(map)
@@ -420,6 +432,8 @@ window.addEventListener('keydown', ({ key }) => {
     //code
     // console.log(key)
     switch (key) {
+        case 'Escape':
+            keys.esc.pressed= !keys.esc.pressed
         case 'z':
             keys.z.pressed = true
             keys.s.pressed = false
@@ -455,4 +469,6 @@ window.addEventListener('keydown', ({ key }) => {
 )
 
 
-//todo: pacman clip to rectangles
+//todo: 
+//pacman clip to rectangles -done
+//ghost direction change and new path (shouldn't be able to 180 turn)
