@@ -228,7 +228,11 @@ class Ghost {
   findPath(grid, start, target) {
     // Helper function to calculate the heuristic (Manhattan distance)
     function calculateHeuristic(node, target) {
-      return Math.abs(node.x - target.x) + Math.abs(node.y - target.y);
+      const dx = Math.abs(node.x - target.x);
+      const dy = Math.abs(node.y - target.y);
+      // Consider tunnel teleportation in heuristic
+      const tunnelDx = Math.min(dx, 28 - dx);
+      return tunnelDx + dy;
     }
   
     // Helper function to check if a node is in the open list
@@ -284,9 +288,11 @@ class Ghost {
       ];
   
       for (const neighbor of neighbors) {
+        // Handle tunnel teleportation
+        if (neighbor.x < 0) neighbor.x = 27;
+        else if (neighbor.x > 27) neighbor.x = 0;
+        
         // Skip if the neighbor is not a valid grid position or is a wall (-1)
-        if (neighbor.x < 0) neighbor.x=27
-        else if (neighbor.x > 27) neighbor.x=0
         if(
           neighbor.y < 0 ||
           neighbor.y >= grid.length ||
