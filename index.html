@@ -1,11 +1,37 @@
 <style>
-    body{
+    body {
         margin: 0;
         background-color: black;
     }
+    #controls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 18px; /* Increase font size */
+    }
 </style>
 <canvas></canvas>
+<div id="controls">
+    <h3>Controls</h3>
+    <ul>
+        <li>z: Move up</li>
+        <li>q: Move left</li>
+        <li>s: Move down</li>
+        <li>d: Move right</li>
+        <li>x: Change wall colors</li>
+        <li>g: Toggle grid visibility</li>
+        <li>p: Toggle pathfinding visualization</li>
+        <li>Escape: Pause/Resume the game</li>
+    </ul>
+</div>
+<div id="score" style="position: absolute; top: 10px; right: 10px; color: white; background-color: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 5px; font-size: 18px;">
+    Score: 0
+</div>
 <script src="Map.js"></script>
 <script src="mapgen.js"></script>
 <script src="colors.js"></script>
-<script src="index.js"></script> 
+<script src="index.js"></script>

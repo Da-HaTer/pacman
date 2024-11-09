@@ -5,11 +5,24 @@ canvas.height = innerHeight
 var show_grid = false
 const fps = 60
 var gameover=false
+var score = 0;
+var totalPellets = 0;
 
 function playAudio(fileName) {
     var audio = new Audio(fileName);
     // Play the audio
     audio.play();
+}
+
+function updateScore() {
+    document.getElementById('score').innerText = `Score: ${score}`;
+}
+
+function checkWin() {
+    if (score === totalPellets) {
+        gameover = true;
+        alert('You win!');
+    }
 }
 
 const keys = {
@@ -77,8 +90,9 @@ class Player {
         //collision detection
         if (grid[yc][xc] == 1) {
             grid[yc][xc] = 0
-            ///lower pellets number todo
-            // playAudio('pacman_chomp.wav')
+            score++;
+            updateScore();
+            checkWin();
         }
         //movement
         if (this.vertical) {
@@ -319,8 +333,8 @@ class Ghost {
   }
 
   update(map) {
-    if (this.position.x<1) this.position.x+=25
-    else if (this.position.x>26) this.position.x-=25 
+    if (this.position.x < 1) this.position.x = 27;
+    else if (this.position.x > 27) this.position.x = 1;
     var grid = map.routes;
     var x = this.position.x;
     var y = this.position.y + 4; // no need for 4 ?
@@ -380,6 +394,14 @@ function init_map() {
     h = 36 * tilesize
     // canvas.width = w
     // canvas.height = h
+    totalPellets = 0;
+    for (let row of map.routes) {
+        for (let cell of row) {
+            if (cell === 1) {
+                totalPellets++;
+            }
+        }
+    }
     return map;
 }
 
